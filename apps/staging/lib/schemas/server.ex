@@ -31,7 +31,10 @@ defmodule Staging.Server do
   end
 
   def order_by_name(query) do
-    from s in query, order_by: s.name
+    from s in query, order_by: [
+      fragment("regexp_matches(?, '^\D+')::text[]", s.name),
+      fragment("regexp_matches(?, '\d+$')::int[]", s.name)
+    ]
   end
 
   def archive_all(query) do
