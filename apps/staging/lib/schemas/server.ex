@@ -32,8 +32,8 @@ defmodule Staging.Server do
 
   def order_by_name(query) do
     from s in query, order_by: [
-      fragment("regexp_matches(?, '^\D+')::text[]", s.name),
-      fragment("regexp_matches(?, '\d+$')::int[]", s.name)
+      fragment("substring(? from '^\\D+')", s.name),
+      fragment("substring(? from '\\d+$')::int", s.name)
     ]
   end
 

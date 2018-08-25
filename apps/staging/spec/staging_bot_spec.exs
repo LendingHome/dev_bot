@@ -72,7 +72,7 @@ defmodule Staging.BotSpec do
 
       it "lists the servers alphabetically by name prefix then numerically by index suffix" do
         Bot.handle_event(%{type: "message", text: "#{@bot_name} list", channel: @channel, user: @message_user.id}, @slack, [])
-        response = string_matching(~r/beta-2.+beta-21.+qa-1.+qa-11/iu)
+        response = string_matching(~r/beta-2.+beta-21.+qa-1.+qa-11/ius)
         expect(@slack_send).to have_received([response, @channel, @slack])
       end
     end
