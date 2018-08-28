@@ -62,6 +62,21 @@ defmodule Staging.BotSpec do
       end
     end
 
+    context "there are servers with numeric suffixes" do
+      before do
+        Factory.insert(:server, %{name: "qa-11", prod_data: false})
+        Factory.insert(:server, %{name: "qa-1", prod_data: false})
+        Factory.insert(:server, %{name: "beta-21", prod_data: false})
+        Factory.insert(:server, %{name: "beta-2", prod_data: false})
+      end
+
+      it "lists the servers alphabetically by name prefix then numerically by index suffix" do
+        Bot.handle_event(%{type: "message", text: "#{@bot_name} list", channel: @channel, user: @message_user.id}, @slack, [])
+        response = string_matching(~r/beta-2.+beta-21.+qa-1.+qa-11/ius)
+        expect(@slack_send).to have_received([response, @channel, @slack])
+      end
+    end
+
     context "some servers are archived" do
       before do
         Factory.insert(:server, %{name: "server-1", archived: false})
