@@ -222,6 +222,23 @@ defmodule Staging.BotSpec do
         expect(Staging.Repo.pluck(Staging.Reservation, :id)).to eq([shared.reservation.id])
       end
     end
+
+    context "a server is archived" do
+      before do
+        Factory.insert(:server, %{name: "server-1", archived: true})
+      end
+
+      it "does not create a reservation" do
+        reservation_end_str = Timex.format!(Timex.shift(Staging.today, days: 3), "%Y-%m-%d", :strftime)
+
+        Bot.handle_event(%{type: "message", text: "#{@bot_name} reserve until #{reservation_end_str}", channel: @channel, user: @message_user.id}, @slack, [])
+
+        response = string_matching(~r/.*there are no servers available/i)
+        expect(@slack_send).to have_received([response, @channel, @slack])
+
+        expect(Staging.Repo.count(Staging.Reservation)).to eq(0)
+      end
+    end
   end
 
   describe "releasing a reservation" do
