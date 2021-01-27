@@ -21,7 +21,7 @@ defmodule Staging.ListServers do
   defp display_server_list(servers, slack) do
     Enum.map servers, fn(server) ->
       "• #{server.name}"
-      |> display_prod_data(server)
+      # |> display_prod_data(server)
       |> display_reservation(server, slack)
     end
   end
