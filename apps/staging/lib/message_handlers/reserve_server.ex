@@ -53,7 +53,9 @@ defmodule Staging.ReserveServer do
     end
   end
 
-  defp future_date?(date), do: date >= Staging.today
+  defp future_date?(date) do
+    !(Date.compare(date, Staging.today) == :lt)
+  end
 
   defp format_date(date) do
     Timex.format!(date, "%-m/%-d", :strftime)
