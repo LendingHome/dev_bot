@@ -95,7 +95,7 @@ defmodule Staging.Server do
   defp active_reservations_for_server(server), do: Reservation.active(from r in Reservation, where: r.server_id == ^server.id)
 
   def available_for_reservation do
-    from s in __MODULE__,
+    from s in unarchived(),
     left_join: r in Reservation,
     on: r.server_id == s.id
     and fragment("daterange(?, ?, '[]') @> ?", r.start_date, r.end_date, type(^Staging.today, Ecto.Date)),
