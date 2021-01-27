@@ -42,7 +42,9 @@ defmodule Staging.Server do
   end
 
   def reserve(user_id: user_id, end_date: end_date) do
-    case Repo.one(available_for_reservation()) do
+    # reservation = from s in available_for_reservation(), limit: 1
+
+    case Repo.first(available_for_reservation()) do
       nil ->
         :none_available
       server ->
