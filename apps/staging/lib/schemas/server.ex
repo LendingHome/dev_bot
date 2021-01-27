@@ -42,11 +42,8 @@ defmodule Staging.Server do
   end
 
   def reserve(user_id: user_id, end_date: end_date) do
-    non_prod_reservation = from s in available_for_reservation(), where: s.prod_data == false, limit: 1
-
-    case Repo.one(non_prod_reservation) do
+    case Repo.one(available_for_reservation()) do
       nil ->
-        # TODO: Try with prod data
         :none_available
       server ->
         reserve!(server, user_id, end_date)

@@ -10,11 +10,11 @@ defmodule Staging.Repo do
   end
 
   def any?(model) do
-    aggregate(model, :count, :id) > 0
+    count(model) > 0
   end
 
   def none?(query) do
-    aggregate(query, :count, :id) == 0
+    count(query) == 0
   end
 
   def exists?(model, args) do
@@ -23,5 +23,9 @@ defmodule Staging.Repo do
 
   def pluck(model, field) do
     all(from(m in model, select: field(m, ^field)))
+  end
+
+  def count(model) do
+    aggregate(model, :count, :id)
   end
 end

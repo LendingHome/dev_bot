@@ -8,13 +8,15 @@ defmodule Staging.ReserveServer do
 
   def respond(message, slack) do
     [_, server_name, end_date_str] = Regex.run(@pattern, message.text)
-    reserve_server(server_name, end_date_str, message)
-    |> @slack.send_message(message.channel, slack)
-  end
 
-  defp reserve_server(server_name, end_date_str, message) when is_binary(end_date_str) do
-    end_date = parse_date(end_date_str)
-    reserve_server(server_name, end_date, message)
+    response = with {:ok, end_date} <- validate_date(end_date_str),
+      msg <- reserve_server(server_name, end_date, message) do
+        msg
+      else
+        err -> err
+      end
+
+    @slack.send_message(response, message.channel, slack)
   end
 
   defp reserve_server("", end_date, message) do
@@ -41,10 +43,18 @@ defmodule Staging.ReserveServer do
     "Ok, you have #{server.name} reserved until #{end_date_str}"
   end
 
-  defp parse_date(date_str) do
-    Timex.parse!(date_str, "{YYYY}-{M}-{D}")
-    |> Timex.to_date
+  defp validate_date(date_str) do
+    with {:ok, date} <- DateTimeParser.parse_date(date_str, assume_date: true),
+      true <- future_date?(date) do
+        IO.puts date
+        {:ok, date}
+    else
+      {:error, _} -> "Can't parse date #{date_str}"
+      false -> "Date must be in the future"
+    end
   end
+
+  defp future_date?(date), do: date >= Staging.today
 
   defp format_date(date) do
     Timex.format!(date, "%-m/%-d", :strftime)

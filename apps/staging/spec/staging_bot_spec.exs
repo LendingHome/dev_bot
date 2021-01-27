@@ -46,17 +46,16 @@ defmodule Staging.BotSpec do
       let :reservation_end, do: Timex.shift(Staging.today, days: 3)
 
       before do
-        non_prod = Factory.insert(:server, %{name: "non-prod-staging", prod_data: false})
-        Factory.insert(:server, %{name: "prod-staging", prod_data: true})
+        server = Factory.insert(:server, %{name: "some-server"})
 
-        Factory.insert(:reservation, %{server: non_prod, user_id: @jim_smith_id, end_date: Ecto.Date.cast!(reservation_end)})
+        Factory.insert(:reservation, %{server: server, user_id: @jim_smith_id, end_date: Ecto.Date.cast!(reservation_end)})
       end
 
       it "lists the servers" do
         Bot.handle_event(%{type: "message", text: "#{@bot_name} list", channel: @channel, user: @message_user.id}, @slack, [])
 
         reservation_end_str = Timex.format!(reservation_end, "%-m/%-d", :strftime)
-        response = string_matching(~r/non-prod-staging.*Reserved by Jim Smith until #{reservation_end_str}\n. prod-staging \(w\/ Prod Data\)/iu)
+        response = string_matching(~r/some-server.*Reserved by Jim Smith until #{reservation_end_str}/iu)
 
         expect(@slack_send).to have_received([response, @channel, @slack])
       end
@@ -184,6 +183,19 @@ defmodule Staging.BotSpec do
           active_reservation = Staging.Repo.get_by(Staging.Server.with_active_reservation, name: "server-2").active_reservation
           expect(active_reservation.user_id).to eq(@message_user.id)
           expect(Ecto.Date.to_erl(active_reservation.end_date)).to eq(Date.to_erl(reservation_end))
+        end
+      end
+
+      context "end date is in the past" do
+        let :reservation_end, do: Timex.shift(Staging.today, days: -1)
+
+        it "does not create a reservation" do
+          Bot.handle_event(%{type: "message", text: "#{@bot_name} reserve until #{reservation_end_str}", channel: @channel, user: @message_user.id}, @slack, [])
+
+          response = string_matching(~r/Date must be in the future/i)
+          expect(@slack_send).to have_received([response, @channel, @slack])
+
+          expect(Staging.Repo.count(Staging.Reservation)).to eq(0)
         end
       end
     end
