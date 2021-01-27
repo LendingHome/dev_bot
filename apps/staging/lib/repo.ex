@@ -28,4 +28,8 @@ defmodule Staging.Repo do
   def count(model) do
     aggregate(model, :count, :id)
   end
+
+  def first(query) do
+    one(from(q in query, limit: 1))
+  end
 end

@@ -46,7 +46,6 @@ defmodule Staging.ReserveServer do
   defp validate_date(date_str) do
     with {:ok, date} <- DateTimeParser.parse_date(date_str, assume_date: true),
       true <- future_date?(date) do
-        IO.puts date
         {:ok, date}
     else
       {:error, _} -> "Can't parse date #{date_str}"
