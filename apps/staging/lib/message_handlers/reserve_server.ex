@@ -44,7 +44,10 @@ defmodule Staging.ReserveServer do
   end
 
   defp validate_date(date_str) do
-    with {:ok, date} <- DateTimeParser.parse_date(date_str, assume_date: true),
+    # The date_time_parser handles month/day strings backwards unless you add the year
+    date_str = if Regex.match?(~r|^\d+/\d+$|, date_str), do: "#{date_str}/#{Date.utc_today.year}", else: date_str
+
+    with {:ok, date} <- DateTimeParser.parse_date(date_str, parsers: [DateTimeParser.Parser.DateUS]),
       true <- future_date?(date) do
         {:ok, date}
     else

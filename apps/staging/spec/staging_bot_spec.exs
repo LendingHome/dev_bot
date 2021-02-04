@@ -159,7 +159,7 @@ defmodule Staging.BotSpec do
       end
 
       it "creates a reservation" do
-        Bot.handle_event(%{type: "message", text: "#{@bot_name} reserve until #{reservation_end_str}", channel: @channel, user: @message_user.id}, @slack, [])
+        Bot.handle_event(%{type: "message", text: "#{@bot_name} reserve until #{reservation_end_str_short}", channel: @channel, user: @message_user.id}, @slack, [])
 
         response = string_matching(~r/.*you have server-1 reserved until #{reservation_end_str_short}/i)
         expect(@slack_send).to have_received([response, @channel, @slack])
